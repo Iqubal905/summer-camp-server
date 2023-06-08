@@ -31,6 +31,7 @@ async function run() {
 
 const instructorCollection = client.db("campDb").collection("instructor");
 const userCollection = client.db("campDb").collection("users");
+const classCollection = client.db("campDb").collection("classes");
 
 
 app.get('/users',  async (req, res) =>{
@@ -78,6 +79,19 @@ app.post('/users', async(req, res) =>{
   const result = await userCollection.insertOne(user)
   res.send(result)
  })
+
+
+app.post('/class', async (req, res) =>{
+  const newClass = req.body
+  const result = await classCollection.insertOne(newClass)
+  res.send(result)
+})
+
+
+app.get('/myclass', async(req, res) =>{
+  const result = await classCollection.find().toArray();
+  res.send(result);
+})
 
 
 
