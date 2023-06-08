@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.f4mhroj.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -30,6 +30,55 @@ async function run() {
 
 
 const instructorCollection = client.db("campDb").collection("instructor");
+const userCollection = client.db("campDb").collection("users");
+
+
+app.get('/users',  async (req, res) =>{
+  const result = await userCollection.find().toArray()
+  res.send(result)
+})
+
+
+app.patch('/users/admin/:id', async (req, res) => {
+  const id =req.params.id;
+  console.log(id);
+  const filter = { _id: new ObjectId(id)};
+  const updateDoc = {
+    $set:{
+      role: 'Admin'
+    }
+  }
+  const result = await userCollection.updateOne(filter, updateDoc)
+  res.send(result)
+})
+
+
+app.patch('/users/instructor/:id', async (req, res) => {
+  const id =req.params.id;
+  console.log(id);
+  const filter = { _id: new ObjectId(id)};
+  const updateDoc = {
+    $set:{
+      role: 'Instructor'
+    }
+  }
+  const result = await userCollection.updateOne(filter, updateDoc)
+  res.send(result)
+})
+
+app.post('/users', async(req, res) =>{
+  const user = req.body;
+  console.log(user);
+  const query = {email: user.email}
+  const existingUser = await userCollection.findOne(query)
+  console.log(existingUser);
+  if(existingUser){
+    return res.send({message: 'exist user'})
+  }
+  const result = await userCollection.insertOne(user)
+  res.send(result)
+ })
+
 
 
 app.get('/instructor', async(req, res) =>{
