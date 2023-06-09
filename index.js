@@ -32,6 +32,7 @@ async function run() {
 const instructorCollection = client.db("campDb").collection("instructor");
 const userCollection = client.db("campDb").collection("users");
 const classCollection = client.db("campDb").collection("classes");
+const bookedCollection = client.db("campDb").collection("booked");
 
 
 app.get('/users',  async (req, res) =>{
@@ -99,7 +100,6 @@ app.patch('/myclass/denied/:id', async (req, res) => {
 
 app.post('/users', async(req, res) =>{
   const user = req.body;
-  console.log(user);
   const query = {email: user.email}
   const existingUser = await userCollection.findOne(query)
   console.log(existingUser);
@@ -116,6 +116,13 @@ app.post('/class', async (req, res) =>{
   const result = await classCollection.insertOne(newClass)
   res.send(result)
 })
+
+app.post('/booked', async (req, res) =>{
+  const newBooked = req.body
+  const result = await bookedCollection.insertOne(newBooked)
+  res.send(result)
+})
+
 
 
 app.get('/myclass', async(req, res) =>{
