@@ -34,6 +34,10 @@ const userCollection = client.db("campDb").collection("users");
 const classCollection = client.db("campDb").collection("classes");
 const bookedCollection = client.db("campDb").collection("booked");
 
+app.get('/mybooked', async(req, res) =>{
+  const result = await bookedCollection.find().toArray();
+  res.send(result);
+})
 
 app.get('/users',  async (req, res) =>{
   const result = await userCollection.find().toArray()
@@ -117,11 +121,15 @@ app.post('/class', async (req, res) =>{
   res.send(result)
 })
 
+
+
+
 app.post('/booked', async (req, res) =>{
   const newBooked = req.body
   const result = await bookedCollection.insertOne(newBooked)
   res.send(result)
 })
+
 
 
 
