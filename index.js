@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 require('dotenv').config()
 const port = process.env.PORT || 5000;
@@ -8,6 +9,30 @@ const port = process.env.PORT || 5000;
 // middleware
 app.use(cors());
 app.use(express.json());
+
+
+
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.status(401).send({ error: true, message: 'unauthorized access' });
+  }
+  const token = authorization.split(' ')[1];
+ jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ error: true, message: 'unauthorized access' })
+    }
+    req.decoded = decoded;
+    next();
+  })
+}
+
+
+
+
+
+
+
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -35,10 +60,50 @@ const userCollection = client.db("campDb").collection("users");
 const classCollection = client.db("campDb").collection("classes");
 const bookedCollection = client.db("campDb").collection("booked");
 
-app.get('/mybooked', async(req, res) =>{
-  const result = await bookedCollection.find().toArray();
-  res.send(result);
+
+app.post('/jwt', (req, res) =>{
+  const user = req.body;
+  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h'})
+
+  res.send({ token })
 })
+
+
+
+
+// app.get('/mybooked', async(req, res) =>{
+//   const result = await bookedCollection.find().toArray();
+//   res.send(result);
+// })
+
+
+app.get('/mybooked', verifyJWT, async(req, res) =>{
+  const email = req.query.email;
+  if(!email){
+    res.send([]);
+  }
+  const decodedEmail = req.decoded.email;
+ if(email !== decodedEmail){
+  return res.status(403).send({error: true, message: 'Porviden access'})
+ }
+  const query = {email: email};
+  const result = await bookedCollection.find(query).toArray();
+  res.send(result);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 app.get('/users',  async (req, res) =>{
   const result = await userCollection.find().toArray()
@@ -123,8 +188,6 @@ app.post('/class', async (req, res) =>{
 })
 
 
-
-
 app.post('/booked', async (req, res) =>{
   const newBooked = req.body
   const result = await bookedCollection.insertOne(newBooked)
@@ -149,9 +212,10 @@ app.get('/instructor', async(req, res) =>{
 
 
 
-app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+app.post('/create-payment-intent', async (req, res) => {
   const { price } = req.body;
   const amount = parseInt(price * 100);
+  console.log(price);
   const paymentIntent = await stripe.paymentIntents.create({
      amount: amount,
      currency: 'usd',
