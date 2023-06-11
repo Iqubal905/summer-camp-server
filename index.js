@@ -4,9 +4,10 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
-const stripe = require('stripe')(process.env.PAYMENT_SECRET_Key)
+// const stripe = require('stripe')(process.env.PAYMENT_SECRET_Key)
+const stripe = require('stripe')('sk_test_51NFSQpKVKJT4h6jM1EfiYgFfBlLWl3C8uCVlzKmvDXbzxBbNsAKwQC3qAK0TIgUSvEecYXOmxE3kbLhGVjFuuIGp00jEhGs9oU')
 
-
+console.log(process.env.PAYMENT_SECRET_Key);
 
 const port = process.env.PORT || 5000;
 
@@ -62,8 +63,9 @@ async function run() {
 
 const instructorCollection = client.db("campDb").collection("instructor");
 const userCollection = client.db("campDb").collection("users");
-const classCollection = client.db("campDb").collection("classes");
+
 const bookedCollection = client.db("campDb").collection("booked");
+const classCollection = client.db("campDb").collection("classes");
 const paymentCollection = client.db("campDb").collection("payment");
 
 
@@ -242,28 +244,40 @@ app.post('/payments', verifyJWT, async (req, res) => {
   console.log(payment);
   const id = payment.id
   console.log(id)
-  const insertResult = await paymentCollection.insertOne(payment);
+const insertResult = await paymentCollection.insertOne(payment);
 
 
-
-
-
+//  const query = { _id: new ObjectId(id)};
 // const deleteResult = await bookedCollection.deleteOne(query);
 // console.log(deleteResult);
 
 
 const filter = { _id: new ObjectId(id) };
 const update = { $set:{
-  status: 'enrolled'
+  price: '400'
 } } 
-
 const updateResult = await bookedCollection.updateOne(filter, update);
 console.log(updateResult);
+
+
 
   res.send({ insertResult, updateResult });
   
   
 })
+
+
+
+
+app.get('/payment', async(req, res) =>{
+  // const email = req.query.email;
+  // const query = {email: email};
+ // const result = await paymentCollection.find(query).toArray();
+  const result = await paymentCollection.find().toArray();
+  res.send(result);
+});
+
+
 
 
 
