@@ -2,11 +2,14 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 require('dotenv').config()
+
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_Key)
+
+
+
 const port = process.env.PORT || 5000;
 
-// middleware
 app.use(cors());
 app.use(express.json());
 
@@ -17,11 +20,13 @@ const verifyJWT = (req, res, next) => {
   if (!authorization) {
     return res.status(401).send({ error: true, message: 'unauthorized access' });
   }
+
   const token = authorization.split(' ')[1];
  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
       return res.status(401).send({ error: true, message: 'unauthorized access' })
     }
+
     req.decoded = decoded;
     next();
   })
@@ -59,13 +64,16 @@ const instructorCollection = client.db("campDb").collection("instructor");
 const userCollection = client.db("campDb").collection("users");
 const classCollection = client.db("campDb").collection("classes");
 const bookedCollection = client.db("campDb").collection("booked");
+const paymentCollection = client.db("campDb").collection("payment");
+
 
 
 app.post('/jwt', (req, res) =>{
   const user = req.body;
+
   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h'})
 
-  res.send({ token })
+ res.send({ token })
 })
 
 
@@ -215,7 +223,7 @@ app.get('/instructor', async(req, res) =>{
 app.post('/create-payment-intent', async (req, res) => {
   const { price } = req.body;
   const amount = parseInt(price * 100);
-  console.log(price);
+  console.log(price, amount);
   const paymentIntent = await stripe.paymentIntents.create({
      amount: amount,
      currency: 'usd',
@@ -223,12 +231,39 @@ app.post('/create-payment-intent', async (req, res) => {
   });
 
    res.send({
-      clientSecret: paymentIntent.client_secret
+      clientSecret: paymentIntent.client_secret 
   })
 })
 
 
 
+app.post('/payments', verifyJWT, async (req, res) => {
+  const payment = req.body;
+  console.log(payment);
+  const id = payment.id
+  console.log(id)
+  const insertResult = await paymentCollection.insertOne(payment);
+
+
+
+
+
+// const deleteResult = await bookedCollection.deleteOne(query);
+// console.log(deleteResult);
+
+
+const filter = { _id: new ObjectId(id) };
+const update = { $set:{
+  status: 'enrolled'
+} } 
+
+const updateResult = await bookedCollection.updateOne(filter, update);
+console.log(updateResult);
+
+  res.send({ insertResult, updateResult });
+  
+  
+})
 
 
 
