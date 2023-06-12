@@ -89,26 +89,61 @@ app.post('/jwt', (req, res) =>{
 
 app.get('/mybooked', verifyJWT, async(req, res) =>{
   const email = req.query.email;
-  if(!email){
-    res.send([]);
-  }
-  const decodedEmail = req.decoded.email;
- if(email !== decodedEmail){
-  return res.status(403).send({error: true, message: 'Porviden access'})
- }
+//   console.log(email);
+//   // if(!email){
+//   //   res.send([]);
+//   // }
+//   const decodedEmail = req.decoded.email;
+//   // console.log( 'decoded',decodedEmail);
+//  if(email !== decodedEmail){
+//   return res.status(403).send({error: true, message: 'Porviden access'})
+//  }
   const query = {email: email};
   const result = await bookedCollection.find(query).toArray();
   res.send(result);
 });
 
 
+// const query = { email: email, name: dataName };
+//     const result = await collection.findOne(query);
+
+//     return result;
+
+// app.get('/users/admin/:email', async (req, res) => {
+//       const email = req.params.email;
+
+   
+
+//       const query = { email: email, role: 'admin' };
+//     const result = await userCollection.find(query).toArray();
+//       // const result = { admin: user?.role === 'admin' }
+//       res.send(result);
+//     })
+
+
+app.get('/users/admin/:email', async (req, res) => {
+  const email = req.params.email;
+
+  
+  const query = { email: email }
+  const user = await userCollection.findOne(query);
+  const result = { admin: user?.role === 'Admin' }
+  console.log(result);
+  res.send(result);
+})
 
 
 
+app.get('/users/instructor/:email', async (req, res) => {
+  const email = req.params.email;
 
-
-
-
+  
+  const query = { email: email }
+  const user = await userCollection.findOne(query);
+  const result = { Instructor: user?.role === 'Instructor' }
+  console.log(result);
+  res.send(result);
+})
 
 
 
