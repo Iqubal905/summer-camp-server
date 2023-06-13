@@ -4,8 +4,8 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
-// const stripe = require('stripe')(process.env.PAYMENT_SECRET_Key)
-const stripe = require('stripe')('sk_test_51NFSQpKVKJT4h6jM1EfiYgFfBlLWl3C8uCVlzKmvDXbzxBbNsAKwQC3qAK0TIgUSvEecYXOmxE3kbLhGVjFuuIGp00jEhGs9oU')
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_Key)
+
 
 console.log(process.env.PAYMENT_SECRET_Key);
 
