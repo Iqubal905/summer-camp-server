@@ -247,23 +247,20 @@ app.post('/create-payment-intent', async (req, res) => {
 
 app.post('/payments', verifyJWT, async (req, res) => {
   const payment = req.body;
-  console.log(payment);
+ 
   const id = payment.id
-  console.log(id)
+  
 const insertResult = await paymentCollection.insertOne(payment);
 
 
-//  const query = { _id: new ObjectId(id)};
-// const deleteResult = await bookedCollection.deleteOne(query);
-// console.log(deleteResult);
-
-
 const filter = { _id: new ObjectId(id) };
-const update = { $set:{
-  price: '400'
+
+const update = { $inc:{
+  availableSeats: -1
 } } 
-const updateResult = await bookedCollection.updateOne(filter, update);
-console.log(updateResult);
+
+const updateResult = await classCollection.updateOne(filter, update);
+
 
 
 
@@ -276,16 +273,10 @@ console.log(updateResult);
 
 
 app.get('/payment', async(req, res) =>{
-  // const email = req.query.email;
-  // const query = {email: email};
- // const result = await paymentCollection.find(query).toArray();
+ 
   const result = await paymentCollection.find().toArray();
   res.send(result);
 });
-
-
-
-
 
 
 
