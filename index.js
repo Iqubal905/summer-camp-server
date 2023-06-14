@@ -83,44 +83,13 @@ app.post('/jwt', (req, res) =>{
 
 
 
-// app.get('/mybooked', async(req, res) =>{
-//   const result = await bookedCollection.find().toArray();
-//   res.send(result);
-// })
-
-
 app.get('/mybooked', verifyJWT, async(req, res) =>{
   const email = req.query.email;
-//   console.log(email);
-//   // if(!email){
-//   //   res.send([]);
-//   // }
-//   const decodedEmail = req.decoded.email;
-//   // console.log( 'decoded',decodedEmail);
-//  if(email !== decodedEmail){
-//   return res.status(403).send({error: true, message: 'Porviden access'})
-//  }
   const query = {email: email};
   const result = await bookedCollection.find(query).toArray();
   res.send(result);
 });
 
-
-// const query = { email: email, name: dataName };
-//     const result = await collection.findOne(query);
-
-//     return result;
-
-// app.get('/users/admin/:email', async (req, res) => {
-//       const email = req.params.email;
-
-   
-
-//       const query = { email: email, role: 'admin' };
-//     const result = await userCollection.find(query).toArray();
-//       // const result = { admin: user?.role === 'admin' }
-//       res.send(result);
-//     })
 
 
 app.get('/users/admin/:email', async (req, res) => {
