@@ -86,7 +86,7 @@ app.post('/jwt', (req, res) =>{
 app.get('/mybooked', verifyJWT, async(req, res) =>{
   const email = req.query.email;
   const query = {email: email};
-  const result = await bookedCollection.find(query).toArray();
+  const result = await bookedCollection.find(query).sort({ timestampField: 1 }).toArray();
   res.send(result);
 });
 
@@ -199,6 +199,7 @@ app.post('/users', async(req, res) =>{
 
 app.post('/class', async (req, res) =>{
   const newClass = req.body
+  console.log(newClass);
   const result = await classCollection.insertOne(newClass)
   res.send(result)
 })
@@ -206,6 +207,7 @@ app.post('/class', async (req, res) =>{
 
 app.post('/booked', async (req, res) =>{
   const newBooked = req.body
+  console.log(newBooked);
   const result = await bookedCollection.insertOne(newBooked)
   res.send(result)
 })
@@ -214,14 +216,14 @@ app.post('/booked', async (req, res) =>{
 
 
 app.get('/myclass', async(req, res) =>{
-  const result = await classCollection.find().toArray();
+  const result = await classCollection.find().sort({ enrollSeats: -1 }).toArray();
   res.send(result);
 })
 
 
 
 app.get('/instructor', async(req, res) =>{
-    const result = await instructorCollection.find().toArray();
+    const result = await instructorCollection.find().sort({classesTaken: -1}).toArray();
     res.send(result);
 })
 
@@ -230,6 +232,8 @@ app.get('/instructor', async(req, res) =>{
 
 app.post('/create-payment-intent', async (req, res) => {
   const { price } = req.body;
+  console.log(price);
+  console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
   const amount = parseInt(price * 100);
   console.log(price, amount);
   const paymentIntent = await stripe.paymentIntents.create({
@@ -245,29 +249,54 @@ app.post('/create-payment-intent', async (req, res) => {
 
 
 
-app.post('/payments', verifyJWT, async (req, res) => {
+// app.post('/payments', async (req, res) =>{
+//   const newClass = req.body
+//   console.log(newClass);
+//   // const result = await classCollection.insertOne(newClass)
+//   // res.send(result)
+// })
+
+
+
+app.post('/payments', async (req, res) => {
   const payment = req.body;
- 
+  // console.log(payment);
   const id = payment.id
   
 const insertResult = await paymentCollection.insertOne(payment);
+console.log(insertResult);
 
+const query = {_id: id}
 
-const filter = { _id: new ObjectId(id) };
+ const result = await bookedCollection.deleteOne(query);
+ console.log(result);
 
-const update = { $inc:{
-  availableSeats: -1
-} } 
-
-const updateResult = await classCollection.updateOne(filter, update);
-
-
-
-
-  res.send({ insertResult, updateResult });
-  
-  
+ res.send( insertResult );
+    
 })
+
+
+
+app.patch('/seatUpdate/:id', async (req, res) => {
+  const id =req.params.id;
+  
+  console.log(id);
+  const filter = { _id: new ObjectId(id)};
+  console.log(filter);
+  const updateDoc = {
+     $inc:{
+      availableSeats: -1,
+      enrollSeats: +1
+     } 
+    } 
+  const result = await classCollection.updateOne(filter, updateDoc)
+  console.log(result);
+  res.send(result)
+})
+
+
+
+
 
 
 
